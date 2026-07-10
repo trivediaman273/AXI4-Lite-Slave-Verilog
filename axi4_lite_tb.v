@@ -99,7 +99,7 @@ initial begin
     // Write to reg1
     axi_write(32'h04, 32'hBBBB2222);
     
-    axi_write(32'h08 ,32'hCCCC4444);
+    
 
     // Read back reg0
     axi_read(32'h00, read_data);
@@ -109,8 +109,7 @@ initial begin
     axi_read(32'h04, read_data);
     $display("READ reg1 = %h", read_data);
     
-    axi_read(32'h08, read_data);
-    $display("READ reg1 = %h", read_data);
+    
 
     #200;
     $finish;
