@@ -40,13 +40,13 @@ input wire BREADY ,output reg BVALID ,input wire [31:0] ARADDR , input wire ARVA
             ARREADY <= 1'b1;
 
             // Capture write address
-            if (AWVALID) begin
+            if (AWVALID&&AWREADY) begin
                 awaddr_reg  <= AWADDR;
                 awaddr_done <= 1'b1;
             end
 
             // Capture write data
-            if (WVALID) begin
+            if (WVALID&&WREADY) begin
                 wdata_reg   <= WDATA;
                 wdata_done  <= 1'b1;
             end
@@ -94,4 +94,3 @@ input wire BREADY ,output reg BVALID ,input wire [31:0] ARADDR , input wire ARVA
     end
 
 endmodule
- //    
