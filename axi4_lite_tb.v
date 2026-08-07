@@ -29,28 +29,29 @@ end
 always #5 ACLK=~ACLK;
 
 task axi_write;
-    input [31:0] addr1;
-    input [31:0] data;
+input [31:0] addr1;
+input [31:0] data;
 begin
 
-    // Send address
     AWADDR  = addr1;
     AWVALID = 1;
 
-    // Send data
     WDATA   = data;
     WVALID  = 1;
 
-    // Wait for slave ready
-    wait (AWREADY && WREADY);
+    // Wait for address and data handshake
+    while (!(AWREADY && WREADY))
+        @(posedge ACLK);
 
     @(posedge ACLK);
     AWVALID = 0;
     WVALID  = 0;
 
-    // Wait for response
+    // Wait for write response
     BREADY = 1;
-    wait (BVALID);
+
+    while (!BVALID)
+        @(posedge ACLK);
 
     @(posedge ACLK);
     BREADY = 0;
@@ -81,7 +82,7 @@ end
 endtask
 
 
-reg [31:0] read_data;
+reg [31:0] read_data = 0;
 initial begin
     ARESETN = 0;
 
@@ -99,8 +100,11 @@ initial begin
     // Write to reg1
     axi_write(32'h04, 32'hBBBB2222);
     
+    axi_write(32'h08 ,32'hCCCC4444);
     
-
+    axi_write(32'h0C , 32'hDDDD2222);
+    
+    
     // Read back reg0
     axi_read(32'h00, read_data);
     $display("READ reg0 = %h", read_data);
@@ -109,8 +113,15 @@ initial begin
     axi_read(32'h04, read_data);
     $display("READ reg1 = %h", read_data);
     
+    axi_read(32'h08, read_data);
+    $display("READ reg2 = %h", read_data);
     
-
+    axi_read(32'h0C, read_data);
+    $display("READ reg3 = %h", read_data);
+    
+    
+    
+    
     #200;
     $finish;
 end
