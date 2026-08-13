@@ -29,36 +29,54 @@ end
 always #5 ACLK=~ACLK;
 
 task axi_write;
-input [31:0] addr1;
-input [31:0] data;
+    input [31:0] addr1;
+    input [31:0] data;
 begin
 
+   
     AWADDR  = addr1;
     AWVALID = 1;
 
-    WDATA   = data;
-    WVALID  = 1;
-
-    // Wait for address and data handshake
-    while (!(AWREADY && WREADY))
+    while (!AWREADY)
         @(posedge ACLK);
 
     @(posedge ACLK);
     AWVALID = 0;
-    WVALID  = 0;
 
-    // Wait for write response
+
+    
+    @(posedge ACLK);
+
+
+    
+    WDATA  = data;
+    WVALID = 1;
+
+    while (!WREADY)
+        @(posedge ACLK);
+
+    @(posedge ACLK);
+    WVALID = 0;
+
+
+    BREADY = 0;
+
+    repeat(2)
+        @(posedge ACLK);
+
+
+   
     BREADY = 1;
 
     while (!BVALID)
         @(posedge ACLK);
 
     @(posedge ACLK);
+
     BREADY = 0;
 
 end
 endtask
-
 task axi_read;
     input  [31:0] addr;
     output [31:0] data;
@@ -66,21 +84,30 @@ begin
     ARADDR  = addr;
     ARVALID = 1;
 
-    wait (ARREADY);
+    while (!ARREADY)
+        @(posedge ACLK);
 
     @(posedge ACLK);
     ARVALID = 0;
 
-    RREADY = 1;
-    wait (RVALID);
+   
+    RREADY = 0;
 
-    @(posedge ACLK);   // sample after RVALID
+    repeat(2)
+        @(posedge ACLK);
+
+   
+    RREADY = 1;
+
+    while (!RVALID)
+        @(posedge ACLK);
+
+    @(posedge ACLK);
     data = RDATA;
 
     RREADY = 0;
 end
 endtask
-
 
 reg [31:0] read_data = 0;
 initial begin
@@ -94,10 +121,10 @@ initial begin
     wait(ARESETN == 1);
     @(posedge ACLK); 
 
-    // Write to reg0
+    
     axi_write(32'h00, 32'hAAAA1111);
 
-    // Write to reg1
+    
     axi_write(32'h04, 32'hBBBB2222);
     
     axi_write(32'h08 ,32'hCCCC4444);
@@ -105,11 +132,11 @@ initial begin
     axi_write(32'h0C , 32'hDDDD2222);
     
     
-    // Read back reg0
+   
     axi_read(32'h00, read_data);
     $display("READ reg0 = %h", read_data);
 
-    // Read back reg1
+   
     axi_read(32'h04, read_data);
     $display("READ reg1 = %h", read_data);
     
@@ -129,3 +156,5 @@ end
 
 
 endmodule
+
+
