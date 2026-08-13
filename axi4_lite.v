@@ -1,6 +1,6 @@
 module axi4_lite(input wire ACLK ,input wire ARESETN , input wire [31:0] AWADDR , input wire AWVALID ,
-output reg AWREADY , input wire [31:0] WDATA , input wire WVALID , output reg WREADY , output reg [1:0] BRESP,
-input wire BREADY ,output reg BVALID ,input wire [31:0] ARADDR , input wire ARVALID ,output reg ARREADY
+output wire AWREADY , input wire [31:0] WDATA , input wire WVALID , output wire WREADY , output reg [1:0] BRESP,
+input wire BREADY ,output reg BVALID ,input wire [31:0] ARADDR , input wire ARVALID ,output wire ARREADY
 , output reg [31:0] RDATA ,output reg [1:0] RRESP , output reg RVALID , input wire RREADY );
     
   
@@ -10,15 +10,18 @@ input wire BREADY ,output reg BVALID ,input wire [31:0] ARADDR , input wire ARVA
     reg [31:0] wdata_reg;
     reg        awaddr_done;
     reg        wdata_done;
+    
+assign AWREADY = !awaddr_done && !BVALID;
+assign WREADY  = !wdata_done  && !BVALID;
+assign ARREADY = !RVALID;
 
     always @(posedge ACLK) begin
         if (!ARESETN) begin
-            AWREADY     <= 1'b0;
-            WREADY      <= 1'b0;
+            
             BVALID      <= 1'b0;
             BRESP       <= 2'b00;
 
-            ARREADY     <= 1'b0;
+            
             RVALID      <= 1'b0;
             RRESP       <= 2'b00;
             RDATA       <= 32'b0;
@@ -34,10 +37,8 @@ input wire BREADY ,output reg BVALID ,input wire [31:0] ARADDR , input wire ARVA
             wdata_done  <= 1'b0;
         end
         else begin
-            // Always ready in this simple version
-            AWREADY <= 1'b1;
-            WREADY  <= 1'b1;
-            ARREADY <= 1'b1;
+           
+           
 
             // Capture write address
             if (AWVALID&&AWREADY) begin
@@ -94,3 +95,5 @@ input wire BREADY ,output reg BVALID ,input wire [31:0] ARADDR , input wire ARVA
     end
 
 endmodule
+ //    
+  
